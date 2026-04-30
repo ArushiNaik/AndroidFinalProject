@@ -71,7 +71,13 @@ class FoodRepository @Inject constructor(
         foodDao.insertAll(
             listOf(
                 FoodItemEntity(UUID.randomUUID(), r1.id, "Turkey Sandwich", "Fast Food", 8.99),
+                FoodItemEntity(UUID.randomUUID(), r1.id, "Spicy Chicken Wrap", "Fast Food", 9.49),
+                FoodItemEntity(UUID.randomUUID(), r1.id, "Veggie Salad Bowl", "Healthy", 7.99),
+                FoodItemEntity(UUID.randomUUID(), r1.id, "Poutine", "Campus Favourites", 6.99),
                 FoodItemEntity(UUID.randomUUID(), r2.id, "Iced Capp", "Snacks", 3.99),
+                FoodItemEntity(UUID.randomUUID(), r2.id, "Bagel & Cream Cheese", "Breakfast", 4.49),
+                FoodItemEntity(UUID.randomUUID(), r2.id, "Donut Box", "Dessert", 5.99),
+                FoodItemEntity(UUID.randomUUID(), r2.id, "Latte", "Coffee", 4.29),
             )
         )
         commentDao.insert(CommentEntity(UUID.randomUUID(), r1.id, "Student A", "Fast and affordable."))

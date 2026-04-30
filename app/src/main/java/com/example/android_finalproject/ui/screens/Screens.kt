@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -128,12 +130,13 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
         items(state.foodItems) { food ->
             Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(food.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("🍽️ ${food.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     val discounted = (vm.discountedPrice(food.price) * 100).roundToInt() / 100.0
                     Text("${food.category} • $${food.price}  → Student: $${discounted}")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { vm.placeOrder(food.id, OrderMode.DELIVERY, food.name) }) { Text("Delivery") }
                         Button(onClick = { vm.placeOrder(food.id, OrderMode.PICKUP, food.name) }) { Text("Pickup") }
+                        Button(onClick = { vm.addToCart(food) }) { Text("Add to cart") }
                     }
                 }
             }
@@ -141,6 +144,30 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
     }
 }
 
+
+
+@Composable
+fun CartScreen(vm: MainViewModel, padding: PaddingValues) {
+    val cart by vm.cartItems.collectAsStateWithLifecycle()
+    val paymentDone by vm.paymentDone.collectAsStateWithLifecycle()
+    LazyColumn(Modifier.padding(padding).fillMaxSize().background(SurfaceBg).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item { Text("Your Cart", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
+        items(cart) { item ->
+            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column { Text("🛒 ${item.name}"); Text("$${vm.discountedPrice(item.price)} after student discount") }
+                    Button(onClick = { vm.removeFromCart(item) }) { Text("Remove") }
+                }
+            }
+        }
+        item {
+            Text("Total: $${"%.2f".format(vm.cartTotal())}", fontWeight = FontWeight.ExtraBold)
+            Spacer(Modifier.height(6.dp))
+            Button(onClick = { vm.completePayment() }, enabled = cart.isNotEmpty()) { Text("Pay Now") }
+        }
+        if (paymentDone) item { Text("✅ Payment Completed! Order sent to kitchen.", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold) }
+    }
+}
 @Composable
 fun OrdersScreen(vm: MainViewModel, padding: PaddingValues) {
     val state by vm.uiState.collectAsStateWithLifecycle()

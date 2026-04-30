@@ -6,12 +6,24 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.android_finalproject.data.local.entity.CartItemEntity
 import com.example.android_finalproject.data.local.entity.CommentEntity
 import com.example.android_finalproject.data.local.entity.FoodItemEntity
 import com.example.android_finalproject.data.local.entity.OrderEntity
+import com.example.android_finalproject.data.local.entity.OrderItemEntity
 import com.example.android_finalproject.data.local.entity.RestaurantEntity
+import com.example.android_finalproject.data.local.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
+
+@Dao
+interface UserDao {
+    @Query("SELECT * FROM users")
+    fun observeAll(): Flow<List<UserEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(user: UserEntity)
+}
 
 @Dao
 interface RestaurantDao {
@@ -32,6 +44,18 @@ interface FoodDao {
 }
 
 @Dao
+interface CartDao {
+    @Query("SELECT * FROM cart_items WHERE userId = :userId")
+    fun observeByUser(userId: UUID): Flow<List<CartItemEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(item: CartItemEntity)
+
+    @Query("DELETE FROM cart_items WHERE userId = :userId")
+    suspend fun clearUserCart(userId: UUID)
+}
+
+@Dao
 interface OrderDao {
     @Query("SELECT * FROM orders")
     fun observeAll(): Flow<List<OrderEntity>>
@@ -47,6 +71,15 @@ interface OrderDao {
 
     @Query("SELECT * FROM orders WHERE id = :id")
     suspend fun findById(id: UUID): OrderEntity?
+}
+
+@Dao
+interface OrderItemDao {
+    @Query("SELECT * FROM order_items WHERE orderId = :orderId")
+    fun observeByOrder(orderId: UUID): Flow<List<OrderItemEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(item: OrderItemEntity)
 }
 
 @Dao

@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 @HiltViewModel
@@ -35,7 +37,12 @@ class MainViewModel @Inject constructor(
         .flatMapLatest { repository.dashboard(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardData(emptyList(), emptyList(), emptyList(), emptyList()))
 
-    init { viewModelScope.launch { repository.seedIfEmpty() } }
+    init {
+        viewModelScope.launch {
+            runCatching { withContext(Dispatchers.IO) { repository.seedIfEmpty() } }
+                .onFailure { _confirmation.value = "Startup recovered from data error. Please retry." }
+        }
+    }
 
     fun onSearchChanged(value: String) { search.value = value }
     fun discountedPrice(price: Double): Double = price * 0.9
@@ -53,9 +60,9 @@ class MainViewModel @Inject constructor(
     fun cartTotal(): Double = _cartItems.value.entries.sumOf { discountedPrice(it.key.price) * it.value }
 
     fun completePayment() { _paymentDone.value = true; _cartItems.value = emptyMap(); _confirmation.value = "Payment complete ✅" }
-    fun placeOrder(foodItemId: UUID, mode: OrderMode, itemName: String) { viewModelScope.launch { repository.placeOrder(foodItemId, mode); _confirmation.value = "Order confirmed for $itemName (${mode.name.lowercase()})" } }
+    fun placeOrder(foodItemId: UUID, mode: OrderMode, itemName: String) { viewModelScope.launch { runCatching { withContext(Dispatchers.IO) { repository.placeOrder(foodItemId, mode) } }.onFailure { _confirmation.value = "Order failed. Try again." }; _confirmation.value = "Order confirmed for $itemName (${mode.name.lowercase()})" } }
     fun dismissConfirmation() { _confirmation.value = null; _paymentDone.value = false }
-    fun moveOrderToNextStatus(orderId: UUID) { viewModelScope.launch { repository.advanceOrderStatus(orderId) } }
-    fun cancelOrder(orderId: UUID) { viewModelScope.launch { repository.cancelOrder(orderId) } }
-    fun addComment(restaurantId: UUID, author: String, message: String) { viewModelScope.launch { repository.addComment(restaurantId, author, message) } }
+    fun moveOrderToNextStatus(orderId: UUID) { viewModelScope.launch { runCatching { withContext(Dispatchers.IO) { repository.advanceOrderStatus(orderId) } } } }
+    fun cancelOrder(orderId: UUID) { viewModelScope.launch { runCatching { withContext(Dispatchers.IO) { repository.cancelOrder(orderId) } } } }
+    fun addComment(restaurantId: UUID, author: String, message: String) { viewModelScope.launch { runCatching { withContext(Dispatchers.IO) { repository.addComment(restaurantId, author, message) } } } }
 }

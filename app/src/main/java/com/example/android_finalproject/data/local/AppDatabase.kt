@@ -29,7 +29,7 @@ import com.example.android_finalproject.data.local.entity.UserEntity
         OrderItemEntity::class,
         CommentEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

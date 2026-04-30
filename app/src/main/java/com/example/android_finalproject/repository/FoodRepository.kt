@@ -13,7 +13,6 @@ import com.example.android_finalproject.model.OrderStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import java.time.LocalTime
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,16 +65,16 @@ class FoodRepository @Inject constructor(
     suspend fun seedIfEmpty() {
         if (restaurantDao.observeAll().first().isNotEmpty()) return
         val restaurants = listOf(
-            RestaurantEntity(UUID.randomUUID(), "Subway", LocalTime.of(8, 0), LocalTime.of(20, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Tim Hortons", LocalTime.of(7, 0), LocalTime.of(22, 0)),
-            RestaurantEntity(UUID.randomUUID(), "McDonald's", LocalTime.of(9, 0), LocalTime.of(23, 0)),
-            RestaurantEntity(UUID.randomUUID(), "A&W", LocalTime.of(10, 0), LocalTime.of(21, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Pizza Pizza", LocalTime.of(10, 0), LocalTime.of(23, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Campus Cafe", LocalTime.of(7, 30), LocalTime.of(18, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Freshii", LocalTime.of(9, 0), LocalTime.of(20, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Sushi Go", LocalTime.of(11, 0), LocalTime.of(22, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Pita Pit", LocalTime.of(10, 0), LocalTime.of(21, 0)),
-            RestaurantEntity(UUID.randomUUID(), "Burger King", LocalTime.of(9, 0), LocalTime.of(22, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Subway", "08:00", "20:00"),
+            RestaurantEntity(UUID.randomUUID(), "Tim Hortons", "07:00", "22:00"),
+            RestaurantEntity(UUID.randomUUID(), "McDonald's", "09:00", "23:00"),
+            RestaurantEntity(UUID.randomUUID(), "A&W", "10:00", "21:00"),
+            RestaurantEntity(UUID.randomUUID(), "Pizza Pizza", "10:00", "23:00"),
+            RestaurantEntity(UUID.randomUUID(), "Campus Cafe", "07:30", "18:00"),
+            RestaurantEntity(UUID.randomUUID(), "Freshii", "09:00", "20:00"),
+            RestaurantEntity(UUID.randomUUID(), "Sushi Go", "11:00", "22:00"),
+            RestaurantEntity(UUID.randomUUID(), "Pita Pit", "10:00", "21:00"),
+            RestaurantEntity(UUID.randomUUID(), "Burger King", "09:00", "22:00"),
         )
         restaurantDao.insertAll(restaurants)
         val foods = restaurants.flatMap { r ->

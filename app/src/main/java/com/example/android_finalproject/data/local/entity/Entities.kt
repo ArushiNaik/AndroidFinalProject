@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.android_finalproject.model.OrderMode
 import com.example.android_finalproject.model.OrderStatus
-import java.time.LocalTime
 import java.util.UUID
 
 @Entity(tableName = "users")
@@ -19,8 +18,8 @@ data class UserEntity(
 data class RestaurantEntity(
     @PrimaryKey val id: UUID,
     val name: String,
-    val opensAt: LocalTime,
-    val closesAt: LocalTime,
+    val opensAt: String,
+    val closesAt: String,
 )
 
 @Entity(tableName = "food_items")

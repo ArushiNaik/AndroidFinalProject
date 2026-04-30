@@ -9,7 +9,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -37,7 +36,7 @@ fun ChamplainAppNavHost(vm: MainViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val items = listOf(
         BottomNavItem("home", "Home", { Icon(Icons.Default.Home, null) }),
-        BottomNavItem("cart", "Cart", { Icon(Icons.Default.ShoppingBag, null) }),
+        BottomNavItem("cart", "Cart", { Icon(Icons.Default.ShoppingCart, null) }),
         BottomNavItem("orders", "Orders", { Icon(Icons.Default.ShoppingCart, null) }),
         BottomNavItem("profile", "Profile", { Icon(Icons.Default.Person, null) }),
     )

@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android_finalproject.model.OrderMode
 import com.example.android_finalproject.ui.viewmodel.MainViewModel
@@ -39,6 +40,7 @@ private val SurfaceBg = Color(0xFFF7F7F7)
 @Composable
 fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
     val state by vm.uiState.collectAsStateWithLifecycle()
+    val confirmation by vm.confirmation.collectAsStateWithLifecycle()
     var search by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
     var comment by remember { mutableStateOf("") }
@@ -68,6 +70,14 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         item {
+            confirmation?.let { msg ->
+                Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))) {
+                    Row(Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(msg, modifier = Modifier.weight(1f))
+                        Button(onClick = { vm.dismissConfirmation() }) { Text("OK") }
+                    }
+                }
+            }
             OutlinedTextField(
                 value = search,
                 onValueChange = { search = it; vm.onSearchChanged(it) },
@@ -107,14 +117,23 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         item { Text("Top Picks", fontWeight = FontWeight.Bold) }
+        item {
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("Quick Cart & Checkout", fontWeight = FontWeight.Bold)
+                    Text("Items in menu: ${state.foodItems.size}. Student discount auto-applied in prices.")
+                }
+            }
+        }
         items(state.foodItems) { food ->
             Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(food.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("${food.category} • $${food.price}")
+                    val discounted = (vm.discountedPrice(food.price) * 100).roundToInt() / 100.0
+                    Text("${food.category} • $${food.price}  → Student: $${discounted}")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { vm.placeOrder(food.id, OrderMode.DELIVERY) }) { Text("Delivery") }
-                        Button(onClick = { vm.placeOrder(food.id, OrderMode.PICKUP) }) { Text("Pickup") }
+                        Button(onClick = { vm.placeOrder(food.id, OrderMode.DELIVERY, food.name) }) { Text("Delivery") }
+                        Button(onClick = { vm.placeOrder(food.id, OrderMode.PICKUP, food.name) }) { Text("Pickup") }
                     }
                 }
             }
@@ -134,6 +153,7 @@ fun OrdersScreen(vm: MainViewModel, padding: PaddingValues) {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("${order.mode} • ${order.status}", fontWeight = FontWeight.Bold)
+                    Text(orderTimeline(order.status.name))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { vm.moveOrderToNextStatus(order.id) }) { Text("Next Status") }
                         Button(onClick = { vm.cancelOrder(order.id) }) { Text("Cancel") }
@@ -164,4 +184,13 @@ fun ProfileScreen(padding: PaddingValues) {
         Text("• Kiana Heidarpourmaleki — Database")
         Text("Roadmap: cloud sync, farther delivery radius, schedule delivery time.")
     }
+}
+
+
+private fun orderTimeline(status: String): String = when (status) {
+    "PENDING" -> "Timeline: Confirmed → Preparing → On the way → Delivered"
+    "PREPARING" -> "Timeline: Preparing now → On the way soon"
+    "ON_THE_WAY" -> "Timeline: Rider is on the way (ETA 5-10 mins)"
+    "COMPLETE" -> "Timeline: Delivered ✅"
+    else -> "Timeline: Cancelled"
 }

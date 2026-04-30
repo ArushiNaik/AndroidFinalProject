@@ -65,22 +65,28 @@ class FoodRepository @Inject constructor(
 
     suspend fun seedIfEmpty() {
         if (restaurantDao.observeAll().first().isNotEmpty()) return
-        val r1 = RestaurantEntity(UUID.randomUUID(), "Subway", LocalTime.of(8, 0), LocalTime.of(20, 0))
-        val r2 = RestaurantEntity(UUID.randomUUID(), "Tim Hortons", LocalTime.of(7, 0), LocalTime.of(22, 0))
-        restaurantDao.insertAll(listOf(r1, r2))
-        foodDao.insertAll(
-            listOf(
-                FoodItemEntity(UUID.randomUUID(), r1.id, "Turkey Sandwich", "Fast Food", 8.99),
-                FoodItemEntity(UUID.randomUUID(), r1.id, "Spicy Chicken Wrap", "Fast Food", 9.49),
-                FoodItemEntity(UUID.randomUUID(), r1.id, "Veggie Salad Bowl", "Healthy", 7.99),
-                FoodItemEntity(UUID.randomUUID(), r1.id, "Poutine", "Campus Favourites", 6.99),
-                FoodItemEntity(UUID.randomUUID(), r2.id, "Iced Capp", "Snacks", 3.99),
-                FoodItemEntity(UUID.randomUUID(), r2.id, "Bagel & Cream Cheese", "Breakfast", 4.49),
-                FoodItemEntity(UUID.randomUUID(), r2.id, "Donut Box", "Dessert", 5.99),
-                FoodItemEntity(UUID.randomUUID(), r2.id, "Latte", "Coffee", 4.29),
-            )
+        val restaurants = listOf(
+            RestaurantEntity(UUID.randomUUID(), "Subway", LocalTime.of(8, 0), LocalTime.of(20, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Tim Hortons", LocalTime.of(7, 0), LocalTime.of(22, 0)),
+            RestaurantEntity(UUID.randomUUID(), "McDonald's", LocalTime.of(9, 0), LocalTime.of(23, 0)),
+            RestaurantEntity(UUID.randomUUID(), "A&W", LocalTime.of(10, 0), LocalTime.of(21, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Pizza Pizza", LocalTime.of(10, 0), LocalTime.of(23, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Campus Cafe", LocalTime.of(7, 30), LocalTime.of(18, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Freshii", LocalTime.of(9, 0), LocalTime.of(20, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Sushi Go", LocalTime.of(11, 0), LocalTime.of(22, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Pita Pit", LocalTime.of(10, 0), LocalTime.of(21, 0)),
+            RestaurantEntity(UUID.randomUUID(), "Burger King", LocalTime.of(9, 0), LocalTime.of(22, 0)),
         )
-        commentDao.insert(CommentEntity(UUID.randomUUID(), r1.id, "Student A", "Fast and affordable."))
+        restaurantDao.insertAll(restaurants)
+        val foods = restaurants.flatMap { r ->
+            listOf(
+                FoodItemEntity(UUID.randomUUID(), r.id, "Signature Combo - ${r.name}", "Popular", 11.99),
+                FoodItemEntity(UUID.randomUUID(), r.id, "Chicken Bowl - ${r.name}", "Healthy", 9.49),
+                FoodItemEntity(UUID.randomUUID(), r.id, "Student Deal - ${r.name}", "Deals", 7.99),
+            )
+        }
+        foodDao.insertAll(foods)
+        commentDao.insert(CommentEntity(UUID.randomUUID(), restaurants.first().id, "Student A", "Fast and affordable."))
     }
 }
 

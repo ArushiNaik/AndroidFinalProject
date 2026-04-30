@@ -36,7 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android_finalproject.model.OrderMode
 import com.example.android_finalproject.ui.viewmodel.MainViewModel
 
-private val UberOrange = Color(0xFFFF6B35)
+private val UberOrange = Color(0xFF06C167)
 private val SurfaceBg = Color(0xFFF7F7F7)
 
 @Composable
@@ -46,6 +46,7 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: 
     var search by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
     var comment by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("All") }
 
     LazyColumn(
         modifier = Modifier
@@ -62,7 +63,7 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: 
             ) {
                 Column(
                     modifier = Modifier
-                        .background(Brush.horizontalGradient(listOf(UberOrange, Color(0xFFFF9A3C))))
+                        .background(Brush.horizontalGradient(listOf(UberOrange, Color(0xFF1DB954))))
                         .padding(16.dp)
                 ) {
                     Text("Champlain Eats", style = MaterialTheme.typography.headlineSmall, color = Color.White, fontWeight = FontWeight.ExtraBold)
@@ -92,8 +93,8 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: 
         item {
             Text("Popular Categories", fontWeight = FontWeight.Bold)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(listOf("Burgers", "Pizza", "Coffee", "Healthy", "Snacks")) {
-                    AssistChip(onClick = {}, label = { Text(it) })
+                items(listOf("All", "Popular", "Healthy", "Deals")) { cat ->
+                    AssistChip(onClick = { selectedCategory = cat }, label = { Text(if (cat == selectedCategory) "✓ $cat" else cat) })
                 }
             }
         }
@@ -128,7 +129,7 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: 
                 }
             }
         }
-        items(state.foodItems) { food ->
+        items(state.foodItems.filter { selectedCategory == "All" || it.category == selectedCategory }) { food ->
             Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("🍽️ ${food.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -236,7 +237,7 @@ fun RestaurantDetailScreen(vm: MainViewModel, padding: PaddingValues) {
         item {
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(12.dp)) {
-                    Text("📸 Restaurant Photo Placeholder", fontWeight = FontWeight.Bold)
+                    Text("📸 Food & Restaurant Images (local placeholder)", fontWeight = FontWeight.Bold)
                     Text(restaurant?.name ?: "Restaurant")
                     Text("Open ${restaurant?.opensAt} - ${restaurant?.closesAt}")
                     Text("Recommended dishes")

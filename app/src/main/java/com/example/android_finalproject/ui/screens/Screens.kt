@@ -40,7 +40,7 @@ private val UberOrange = Color(0xFFFF6B35)
 private val SurfaceBg = Color(0xFFF7F7F7)
 
 @Composable
-fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
+fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: () -> Unit) {
     val state by vm.uiState.collectAsStateWithLifecycle()
     val confirmation by vm.confirmation.collectAsStateWithLifecycle()
     var search by remember { mutableStateOf("") }
@@ -102,7 +102,8 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues) {
         items(state.restaurants) { restaurant ->
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp)) {
-                    Text(restaurant.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("🍔 ${restaurant.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Button(onClick = { vm.selectRestaurant(restaurant.id); openRestaurantDetail() }) { Text("View Menu") }
                     Text("Open: ${restaurant.opensAt} - ${restaurant.closesAt}")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(author, { author = it }, label = { Text("Name") }, modifier = Modifier.weight(1f))
@@ -152,10 +153,12 @@ fun CartScreen(vm: MainViewModel, padding: PaddingValues) {
     val paymentDone by vm.paymentDone.collectAsStateWithLifecycle()
     LazyColumn(Modifier.padding(padding).fillMaxSize().background(SurfaceBg).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text("Your Cart", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
-        items(cart) { item ->
+        items(cart.entries.toList()) { entry ->
+            val item = entry.key
+            val qty = entry.value
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column { Text("🛒 ${item.name}"); Text("$${vm.discountedPrice(item.price)} after student discount") }
+                    Column { Text("🛒 ${item.name} x$qty"); Text("$${vm.discountedPrice(item.price)} each after student discount") }
                     Button(onClick = { vm.removeFromCart(item) }) { Text("Remove") }
                 }
             }
@@ -220,4 +223,34 @@ private fun orderTimeline(status: String): String = when (status) {
     "ON_THE_WAY" -> "Timeline: Rider is on the way (ETA 5-10 mins)"
     "COMPLETE" -> "Timeline: Delivered ✅"
     else -> "Timeline: Cancelled"
+}
+
+
+@Composable
+fun RestaurantDetailScreen(vm: MainViewModel, padding: PaddingValues) {
+    val state by vm.uiState.collectAsStateWithLifecycle()
+    val selectedId by vm.selectedRestaurantId.collectAsStateWithLifecycle()
+    val restaurant = state.restaurants.firstOrNull { it.id == selectedId }
+    val foods = state.foodItems.filter { it.restaurantId == selectedId }
+    LazyColumn(Modifier.padding(padding).fillMaxSize().background(SurfaceBg).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("📸 Restaurant Photo Placeholder", fontWeight = FontWeight.Bold)
+                    Text(restaurant?.name ?: "Restaurant")
+                    Text("Open ${restaurant?.opensAt} - ${restaurant?.closesAt}")
+                    Text("Recommended dishes")
+                }
+            }
+        }
+        item { Text("Menu", fontWeight = FontWeight.Bold) }
+        items(foods) { food ->
+            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column { Text("🍽️ ${food.name}"); Text(food.category) }
+                    Button(onClick = { vm.addToCart(food) }) { Text("Add") }
+                }
+            }
+        }
+    }
 }

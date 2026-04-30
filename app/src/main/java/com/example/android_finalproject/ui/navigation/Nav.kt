@@ -27,6 +27,7 @@ import com.example.android_finalproject.ui.screens.CartScreen
 import com.example.android_finalproject.ui.screens.HomeScreen
 import com.example.android_finalproject.ui.screens.OrdersScreen
 import com.example.android_finalproject.ui.screens.ProfileScreen
+import com.example.android_finalproject.ui.screens.RestaurantDetailScreen
 import com.example.android_finalproject.ui.viewmodel.MainViewModel
 
 data class BottomNavItem(val route: String, val label: String, val icon: @Composable () -> Unit)
@@ -44,17 +45,15 @@ fun ChamplainAppNavHost(vm: MainViewModel = hiltViewModel()) {
         NavigationBar {
             val backStack by navController.currentBackStackEntryAsState()
             items.forEach { item ->
-                NavigationBarItem(
-                    selected = backStack?.destination?.hierarchy?.any { it.route == item.route } == true,
-                    onClick = { navController.navigate(item.route) { popUpTo(navController.graph.startDestinationId) { saveState = true }; launchSingleTop = true; restoreState = true } },
-                    icon = item.icon,
-                    label = { Text(item.label) },
-                )
+                NavigationBarItem(selected = backStack?.destination?.hierarchy?.any { it.route == item.route } == true, onClick = {
+                    navController.navigate(item.route) { popUpTo(navController.graph.startDestinationId) { saveState = true }; launchSingleTop = true; restoreState = true }
+                }, icon = item.icon, label = { Text(item.label) })
             }
         }
     }) { padding ->
         NavHost(navController = navController, startDestination = "home") {
-            composable("home", enterTransition = { enterFromRight() }, exitTransition = { exitToLeft() }) { HomeScreen(vm, padding) }
+            composable("home", enterTransition = { enterFromRight() }, exitTransition = { exitToLeft() }) { HomeScreen(vm, padding) { navController.navigate("restaurant_detail") } }
+            composable("restaurant_detail", enterTransition = { enterFromRight() }, exitTransition = { exitToLeft() }) { RestaurantDetailScreen(vm, padding) }
             composable("cart", enterTransition = { enterFromRight() }, exitTransition = { exitToLeft() }) { CartScreen(vm, padding) }
             composable("orders", enterTransition = { enterFromRight() }, exitTransition = { exitToLeft() }) { OrdersScreen(vm, padding) }
             composable("profile", enterTransition = { enterFromRight() }, exitTransition = { exitToLeft() }) { ProfileScreen(padding) }

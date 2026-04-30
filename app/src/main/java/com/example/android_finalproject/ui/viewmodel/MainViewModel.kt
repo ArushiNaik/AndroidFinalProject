@@ -24,11 +24,12 @@ class MainViewModel @Inject constructor(
     private val search = MutableStateFlow("")
     private val _confirmation = MutableStateFlow<String?>(null)
     val confirmation: StateFlow<String?> = _confirmation
-    private val _cartItems = MutableStateFlow<List<FoodItemEntity>>(emptyList())
+    private val _cartItems = MutableStateFlow<Map<FoodItemEntity, Int>>(emptyMap())
     val cartItems = _cartItems.asStateFlow()
+    private val _selectedRestaurantId = MutableStateFlow<UUID?>(null)
+    val selectedRestaurantId = _selectedRestaurantId.asStateFlow()
     private val _paymentDone = MutableStateFlow(false)
     val paymentDone = _paymentDone.asStateFlow()
-    private val studentDiscountRate = 0.10
 
     val uiState: StateFlow<DashboardData> = search
         .flatMapLatest { repository.dashboard(it) }
@@ -37,32 +38,22 @@ class MainViewModel @Inject constructor(
     init { viewModelScope.launch { repository.seedIfEmpty() } }
 
     fun onSearchChanged(value: String) { search.value = value }
-    fun discountedPrice(price: Double): Double = price * (1.0 - studentDiscountRate)
+    fun discountedPrice(price: Double): Double = price * 0.9
+    fun selectRestaurant(restaurantId: UUID) { _selectedRestaurantId.value = restaurantId }
 
     fun addToCart(item: FoodItemEntity) {
-        _cartItems.value = _cartItems.value + item
+        val updated = _cartItems.value.toMutableMap(); updated[item] = (updated[item] ?: 0) + 1; _cartItems.value = updated
         _confirmation.value = "Added ${item.name} to cart"
     }
-
     fun removeFromCart(item: FoodItemEntity) {
-        _cartItems.value = _cartItems.value.toMutableList().also { it.remove(item) }
+        val updated = _cartItems.value.toMutableMap(); val qty = (updated[item] ?: 0) - 1
+        if (qty <= 0) updated.remove(item) else updated[item] = qty
+        _cartItems.value = updated
     }
+    fun cartTotal(): Double = _cartItems.value.entries.sumOf { discountedPrice(it.key.price) * it.value }
 
-    fun cartTotal(): Double = _cartItems.value.sumOf { discountedPrice(it.price) }
-
-    fun completePayment() {
-        _paymentDone.value = true
-        _cartItems.value = emptyList()
-        _confirmation.value = "Payment complete ✅ Your order is being prepared."
-    }
-
-    fun placeOrder(foodItemId: UUID, mode: OrderMode, itemName: String) {
-        viewModelScope.launch {
-            repository.placeOrder(foodItemId, mode)
-            _confirmation.value = "Order confirmed for $itemName (${mode.name.lowercase()}). ETA 15-25 mins."
-        }
-    }
-
+    fun completePayment() { _paymentDone.value = true; _cartItems.value = emptyMap(); _confirmation.value = "Payment complete ✅" }
+    fun placeOrder(foodItemId: UUID, mode: OrderMode, itemName: String) { viewModelScope.launch { repository.placeOrder(foodItemId, mode); _confirmation.value = "Order confirmed for $itemName (${mode.name.lowercase()})" } }
     fun dismissConfirmation() { _confirmation.value = null; _paymentDone.value = false }
     fun moveOrderToNextStatus(orderId: UUID) { viewModelScope.launch { repository.advanceOrderStatus(orderId) } }
     fun cancelOrder(orderId: UUID) { viewModelScope.launch { repository.cancelOrder(orderId) } }

@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Dispatchers
@@ -34,13 +36,13 @@ class MainViewModel @Inject constructor(
     val paymentDone = _paymentDone.asStateFlow()
 
     val uiState: StateFlow<DashboardData> = search
-        .flatMapLatest { repository.dashboard(it) }
+        .flatMapLatest { query -> repository.dashboard(query).catch { emit(DashboardData(emptyList(), emptyList(), emptyList(), emptyList())) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardData(emptyList(), emptyList(), emptyList(), emptyList()))
 
     init {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { repository.seedIfEmpty() } }
-                .onFailure { _confirmation.value = "Startup recovered from data error. Please retry." }
+                .onFailure { _confirmation.value = "Data init failed; running in safe mode." }
         }
     }
 

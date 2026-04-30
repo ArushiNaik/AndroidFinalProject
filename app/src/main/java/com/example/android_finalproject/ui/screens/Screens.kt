@@ -1,6 +1,11 @@
 package com.example.android_finalproject.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.android_finalproject.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -103,6 +108,7 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: 
         items(state.restaurants) { restaurant ->
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp)) {
+Image(painter = painterResource(id = R.drawable.food_restaurant), contentDescription = null, modifier = Modifier.fillMaxWidth().height(90.dp), contentScale = ContentScale.Crop)
                     Text("🍔 ${restaurant.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Button(onClick = { vm.selectRestaurant(restaurant.id); openRestaurantDetail() }) { Text("View Menu") }
                     Text("Open: ${restaurant.opensAt} - ${restaurant.closesAt}")
@@ -132,6 +138,7 @@ fun HomeScreen(vm: MainViewModel, padding: PaddingValues, openRestaurantDetail: 
         items(state.foodItems.filter { selectedCategory == "All" || it.category == selectedCategory }) { food ->
             Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+Image(painter = painterResource(id = imageForCategory(food.category)), contentDescription = food.name, modifier = Modifier.fillMaxWidth().height(100.dp), contentScale = ContentScale.Crop)
                     Text("🍽️ ${food.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     val discounted = (vm.discountedPrice(food.price) * 100).roundToInt() / 100.0
                     Text("${food.category} • $${food.price}  → Student: $${discounted}")
@@ -237,7 +244,8 @@ fun RestaurantDetailScreen(vm: MainViewModel, padding: PaddingValues) {
         item {
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(12.dp)) {
-                    Text("📸 Food & Restaurant Images (local placeholder)", fontWeight = FontWeight.Bold)
+Image(painter = painterResource(id = R.drawable.food_restaurant), contentDescription = null, modifier = Modifier.fillMaxWidth().height(130.dp), contentScale = ContentScale.Crop)
+                    Text("Local restaurant cover image", fontWeight = FontWeight.Bold)
                     Text(restaurant?.name ?: "Restaurant")
                     Text("Open ${restaurant?.opensAt} - ${restaurant?.closesAt}")
                     Text("Recommended dishes")
@@ -254,4 +262,12 @@ fun RestaurantDetailScreen(vm: MainViewModel, padding: PaddingValues) {
             }
         }
     }
+}
+
+
+private fun imageForCategory(category: String): Int = when (category) {
+    "Healthy" -> R.drawable.food_healthy
+    "Deals" -> R.drawable.food_deal
+    "Popular" -> R.drawable.food_burger
+    else -> R.drawable.food_coffee
 }
